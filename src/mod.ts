@@ -67,7 +67,6 @@ class StimsGalore implements IPostDBLoadMod
 					const handbookEntry = handbook.Items.find(item => item.Id === originalStim);
 					const handbookParentId = handbookEntry ? handbookEntry.ParentId : undefined;
 					const newStimId = stimFile.id;
-					const newBuffId = "Buffs_" + newStimId;
 
 					let fleaPrice: number;
 					if (stimFile.fleaPrice === "asOriginal") {
@@ -90,7 +89,7 @@ class StimsGalore implements IPostDBLoadMod
 					const stimClone: NewItemFromCloneDetails = {
 						itemTplToClone: originalStim,
 						overrideProperties: {
-							StimulatorBuffs: newBuffId
+							StimulatorBuffs: newStimId
 						},
 						newId: newStimId,
 						parentId: itemDB[originalStim]._parent,
@@ -101,7 +100,7 @@ class StimsGalore implements IPostDBLoadMod
 					}
 					customItem.createItemFromClone(stimClone);
 
-					tables.globals.config.Health.Effects.Stimulator.Buffs[newBuffId] = stimFile.Buffs;
+					tables.globals.config.Health.Effects.Stimulator.Buffs[newStimId] = stimFile.Buffs;
 
 					// Add to quests
 					if (stimFile.includeInSameQuestsAsOrigin) {
