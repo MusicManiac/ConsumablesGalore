@@ -158,13 +158,13 @@ class StimsGalore implements IPostDBLoadMod
 							if (originIndex !== -1) {
 								const originProbability = staticLoot[container].itemDistribution[originIndex].relativeProbability
 								const spawnRelativeProbability = Math.max(Math.round(originProbability * stimFile.spawnWeightComparedToOrigin), 1);
-								logger.warning(`[${modShortName}] didn't find existing entry for ${newStimId} in container ${container} items distribution`);
+								//logger.warning(`[${modShortName}] didn't find existing entry for ${newStimId} in container ${container} items distribution`);
 								staticLoot[container].itemDistribution.push({
 									tpl: newStimId,
 									relativeProbability: spawnRelativeProbability
 								})
-								const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
-								logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
+								//const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
+								//logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
 							}
 						}
 					}
