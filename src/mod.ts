@@ -46,6 +46,7 @@ class StimsGalore implements IPostDBLoadMod
 		const quests = tables.templates.quests;
 		const traders = tables.traders;
 		const production = tables.hideout.production;
+		const staticLoot = tables.loot.staticLoot;
 
 		
 
@@ -149,6 +150,21 @@ class StimsGalore implements IPostDBLoadMod
 										}
 									}
 								}
+							}
+						}
+
+						for (const container in staticLoot) {
+							const originIndex = staticLoot[container].itemDistribution.findIndex(entry => entry.tpl === originalStim);
+							if (originIndex !== -1) {
+								const originProbability = staticLoot[container].itemDistribution[originIndex].relativeProbability
+								const spawnRelativeProbability = Math.max(Math.round(originProbability * stimFile.spawnWeightComparedToOrigin), 1);
+								logger.warning(`[${modShortName}] didn't find existing entry for ${newStimId} in container ${container} items distribution`);
+								staticLoot[container].itemDistribution.push({
+									tpl: newStimId,
+									relativeProbability: spawnRelativeProbability
+								})
+								const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
+								logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
 							}
 						}
 					}
