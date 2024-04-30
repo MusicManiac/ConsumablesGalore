@@ -90,7 +90,11 @@ class StimsGalore implements IPostDBLoadMod
 					const stimClone: NewItemFromCloneDetails = {
 						itemTplToClone: originalStim,
 						overrideProperties: {
-							StimulatorBuffs: newStimId
+							BackgroundColor: stimFile.BackgroundColor ? stimFile.BackgroundColor : itemDB[originalStim]._props.BackgroundColor,
+							StimulatorBuffs: newStimId,
+							effects_health: stimFile.Effects_Health ? stimFile.Effects_Health : itemDB[originalStim]._props.effects_health,
+							effects_damage: stimFile.Effects_Damage ? stimFile.Effects_Damage : itemDB[originalStim]._props.effects_damage,
+							MaxHpResource: stimFile.MaxHpResource ? stimFile.MaxHpResource : itemDB[originalStim]._props.MaxHpResource
 						},
 						newId: newStimId,
 						parentId: itemDB[originalStim]._parent,
@@ -118,10 +122,11 @@ class StimsGalore implements IPostDBLoadMod
 					}
 					
 					// Add spawn points
-					// Big thanks to RainbowPC and his Lots Of Loot (https://hub.sp-tarkov.com/files/file/697-lots-of-loot/) as this function is direct steal from there 
 					if (stimFile.addSpawnsInSamePlacesAsOrigin) {
+
+						// Big thanks to RainbowPC and his Lots Of Loot (https://hub.sp-tarkov.com/files/file/697-lots-of-loot/) as this function is direct steal from there 
 						const lootComposedKey = newStimId +"_composedkey"
-						const maps = ["bigmap", "woods", "factory4_day", "factory4_night", "interchange", "laboratory", "lighthouse", "rezervbase", "shoreline", "tarkovstreets"];
+						const maps = ["bigmap", "woods", "factory4_day", "factory4_night", "interchange", "laboratory", "lighthouse", "rezervbase", "shoreline", "tarkovstreets", "sandbox"];
 						for (const [name, temp] of Object.entries(tables.locations)) {
 							const mapdata : ILocationData = temp;
 							for (const Map of maps) {
