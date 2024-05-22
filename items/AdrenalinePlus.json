@@ -6,14 +6,14 @@
 	"includeInSameQuestsAsOrigin": true,
 	"addSpawnsInSamePlacesAsOrigin": true,
 	"spawnWeightComparedToOrigin": 1,
-	"MaxHpResource": 2,
+	"MaxResource": 2,
 	"BackgroundColor": "red",
-	"Effects_Health": {
+	"effects_health": {
         "Energy": {
           "value": -10
         }
       },
-	"Effects_Damage": {
+	"effects_damage": {
 		"Contusion": {
 			"delay": 0,
 			"duration": 110,
@@ -99,7 +99,7 @@
 	},
 
 	"craft": {
-		"_id": "adrenal_stim_craft",
+		"_id": "adrenal_plus_stim_craft",
 		"areaType": 7,
 		"requirements": [
 			{

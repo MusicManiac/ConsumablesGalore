@@ -13,16 +13,16 @@ const fs = require('fs');
 const modPath = path.normalize(path.join(__dirname, '..'));
 
 
-class StimsGalore implements IPostDBLoadMod
+class ConsumablesGalore implements IPostDBLoadMod
 {
 	private logger: Ilogger;
 	public mod: string;
-    public modShortName: string;
+	public modShortName: string;
 
 	constructor() {
-        this.mod = "MusicManiac-Stims-Galore";
-        this.modShortName = "Stims Galore";
-    }
+		this.mod = "MusicManiac-Consumables-Galore";
+		this.modShortName = "Consumables Galore";
+	}
 
 	public postDBLoad ( container: DependencyContainer ): void 
 	{
@@ -53,162 +53,167 @@ class StimsGalore implements IPostDBLoadMod
 		const modShortName = this.modShortName;
 
 		function traverse(dir: string): void {
-            const files = fs.readdirSync(dir);
-            files.forEach((file) => {
-                const filePath = path.join(dir, file);
-                const stat = fs.statSync(filePath);
-                if (stat.isDirectory()) {
-                    traverse(filePath);
-                } else if (path.extname(filePath).toLowerCase() === '.json') {
+			const files = fs.readdirSync(dir);
+			files.forEach((file) => {
+				const filePath = path.join(dir, file);
+				const stat = fs.statSync(filePath);
+				if (stat.isDirectory()) {
+					traverse(filePath);
+				} else if (path.extname(filePath).toLowerCase() === '.json') {
 					console.log(`[${modShortName}] Processing file:`, filePath);
 					const fileContent = fs.readFileSync(filePath, 'utf-8');
-                    const stimFile = JSON.parse(fileContent);
-					
-					const originalStim = stimFile.cloneOrigin;
-					const handbookEntry = handbook.Items.find(item => item.Id === originalStim);
-					const handbookParentId = handbookEntry ? handbookEntry.ParentId : undefined;
-					const newStimId = stimFile.id;
+					try {
+						const consumableFile = JSON.parse(fileContent);
+						const originalConsumable = consumableFile.cloneOrigin;
+						const handbookEntry = handbook.Items.find(item => item.Id === originalConsumable);
+						const handbookParentId = handbookEntry ? handbookEntry.ParentId : undefined;
+						const newConsumableId = consumableFile.id;
 
-					let fleaPrice: number;
-					if (stimFile.fleaPrice === "asOriginal") {
-						fleaPrice = fleaPriceTable[originalStim];
-					} else if (stimFile.fleaPrice <= 10) {
-						fleaPrice = fleaPriceTable[originalStim] * stimFile.fleaPrice;
-					} else {
-						fleaPrice = stimFile.fleaPrice;
-					}
+						let fleaPrice: number;
+						if (consumableFile.fleaPrice === "asOriginal") {
+							fleaPrice = fleaPriceTable[originalConsumable];
+						} else if (consumableFile.fleaPrice <= 10) {
+							fleaPrice = fleaPriceTable[originalConsumable] * consumableFile.fleaPrice;
+						} else {
+							fleaPrice = consumableFile.fleaPrice;
+						}
 
-					let handbookPrice: number;
-					if (stimFile.handBookPrice === "asOriginal") {
-						handbookPrice = handbook.Items.find(item => item.Id === originalStim)?.Price;
-					} else if (stimFile.handBookPrice <= 10) {
-						handbookPrice = fleaPriceTable[originalStim] * stimFile.handBookPrice;
-					} else {
-						handbookPrice = stimFile.handBookPrice;
-					}
+						let handbookPrice: number;
+						if (consumableFile.handBookPrice === "asOriginal") {
+							handbookPrice = handbook.Items.find(item => item.Id === originalConsumable)?.Price;
+						} else if (consumableFile.handBookPrice <= 10) {
+							handbookPrice = fleaPriceTable[originalConsumable] * consumableFile.handBookPrice;
+						} else {
+							handbookPrice = consumableFile.handBookPrice;
+						}
 
-					const stimClone: NewItemFromCloneDetails = {
-						itemTplToClone: originalStim,
-						overrideProperties: {
-							BackgroundColor: stimFile.BackgroundColor ? stimFile.BackgroundColor : itemDB[originalStim]._props.BackgroundColor,
-							StimulatorBuffs: newStimId,
-							effects_health: stimFile.Effects_Health ? stimFile.Effects_Health : itemDB[originalStim]._props.effects_health,
-							effects_damage: stimFile.Effects_Damage ? stimFile.Effects_Damage : itemDB[originalStim]._props.effects_damage,
-							MaxHpResource: stimFile.MaxHpResource ? stimFile.MaxHpResource : itemDB[originalStim]._props.MaxHpResource
-						},
-						newId: newStimId,
-						parentId: itemDB[originalStim]._parent,
-						handbookParentId: handbookParentId,
-						fleaPriceRoubles: fleaPrice,
-						handbookPriceRoubles: handbookPrice,
-						locales: stimFile.locales
-					}
-					customItem.createItemFromClone(stimClone);
+						const consumableClone: NewItemFromCloneDetails = {
+							itemTplToClone: originalConsumable,
+							overrideProperties: {
+								BackgroundColor: consumableFile.BackgroundColor ? consumableFile.BackgroundColor : itemDB[originalConsumable]._props.BackgroundColor,
+								StimulatorBuffs: newConsumableId,
+								effects_health: consumableFile.effects_health ? consumableFile.effects_health : itemDB[originalConsumable]._props.effects_health,
+								effects_damage: consumableFile.effects_damage ? consumableFile.effects_damage : itemDB[originalConsumable]._props.effects_damage,
+								MaxResource: consumableFile.MaxResource ? consumableFile.MaxResource : itemDB[originalConsumable]._props.MaxResource
+							},
+							newId: newConsumableId,
+							parentId: itemDB[originalConsumable]._parent,
+							handbookParentId: handbookParentId,
+							fleaPriceRoubles: fleaPrice,
+							handbookPriceRoubles: handbookPrice,
+							locales: consumableFile.locales
+						}
+						customItem.createItemFromClone(consumableClone);
 
-					tables.globals.config.Health.Effects.Stimulator.Buffs[newStimId] = stimFile.Buffs;
-
-					// Add to quests
-					if (stimFile.includeInSameQuestsAsOrigin) {
-						for (const quest of Object.keys(quests)) {
-							const questContent = quests[quest];
-							for (const nextCondition of questContent.conditions.AvailableForFinish) {
-								let nextConditionData = nextCondition;
-								if ((nextConditionData._parent == "HandoverItem" || nextConditionData._parent == "FindItem") && nextConditionData._props.target.includes(originalStim)) {
-									logger.info(`[${modShortName}] found ${originalStim} as find/handover item in quest ${questContent._id} aka ${questContent.QuestName}, adding ${newStimId} to it`);
-									nextConditionData._props.target.push(newStimId);
+						if (consumableFile.hasOwnProperty("Buffs")) {
+							tables.globals.config.Health.Effects.Stimulator.Buffs[newConsumableId] = consumableFile.Buffs;
+						}
+						
+						// Add to quests
+						if (consumableFile.includeInSameQuestsAsOrigin) {
+							for (const quest of Object.keys(quests)) {
+								const questContent = quests[quest];
+								for (const nextCondition of questContent.conditions.AvailableForFinish) {
+									let nextConditionData = nextCondition;
+									if ((nextConditionData.conditionType == "HandoverItem" || nextConditionData.conditionType == "FindItem") && nextConditionData.target.includes(originalConsumable)) {
+										logger.info(`[${modShortName}] found ${originalConsumable} as find/handover item in quest ${questContent._id} aka ${questContent.QuestName}, adding ${newConsumableId} to it`);
+										nextConditionData.target.push(newConsumableId);
+									}
 								}
 							}
 						}
-					}
-					
-					// Add spawn points
-					if (stimFile.addSpawnsInSamePlacesAsOrigin) {
+						
+						// Add spawn points
+						if (consumableFile.addSpawnsInSamePlacesAsOrigin) {
 
-						// Big thanks to RainbowPC and his Lots Of Loot (https://hub.sp-tarkov.com/files/file/697-lots-of-loot/) as this function is direct steal from there 
-						const lootComposedKey = newStimId +"_composedkey"
-						const maps = ["bigmap", "woods", "factory4_day", "factory4_night", "interchange", "laboratory", "lighthouse", "rezervbase", "shoreline", "tarkovstreets", "sandbox"];
-						for (const [name, temp] of Object.entries(tables.locations)) {
-							const mapdata : ILocationData = temp;
-							for (const Map of maps) {
-								if (name === Map) {
-									for (const point of mapdata.looseLoot.spawnpoints) {
-										for (const itm of point.template.Items) {
-											if (itm._tpl == originalStim) {
-												const originalItemID = itm._id;
-												let originRelativeProb: any;
-												for (const dist of point.itemDistribution) {
-													if (dist.composedKey.key == originalItemID) {
-														originRelativeProb = dist.relativeProbability;
-														point.template.Items.push({
-															_id: lootComposedKey,
-                        									_tpl: newStimId
-														})
+							// Big thanks to RainbowPC and his Lots Of Loot (https://hub.sp-tarkov.com/files/file/697-lots-of-loot/) as this function to inject loot into map loot spawns is direct steal from there 
+							const lootComposedKey = newConsumableId +"_composedkey"
+							const maps = ["bigmap", "woods", "factory4_day", "factory4_night", "interchange", "laboratory", "lighthouse", "rezervbase", "shoreline", "tarkovstreets", "sandbox"];
+							for (const [name, temp] of Object.entries(tables.locations)) {
+								const mapdata : ILocationData = temp;
+								for (const Map of maps) {
+									if (name === Map) {
+										for (const point of mapdata.looseLoot.spawnpoints) {
+											for (const itm of point.template.Items) {
+												if (itm._tpl == originalConsumable) {
+													const originalItemID = itm._id;
+													let originRelativeProb: any;
+													for (const dist of point.itemDistribution) {
+														if (dist.composedKey.key == originalItemID) {
+															originRelativeProb = dist.relativeProbability;
+															point.template.Items.push({
+																_id: lootComposedKey,
+																_tpl: newConsumableId
+															})
+														}
 													}
+													point.itemDistribution.push({
+														composedKey: {
+															key: lootComposedKey
+														},
+														relativeProbability: Math.max(Math.round(originRelativeProb * consumableFile.spawnWeightComparedToOrigin), 1)
+													})
 												}
-												point.itemDistribution.push({
-													composedKey: {
-														key: lootComposedKey
-													},
-													relativeProbability: Math.max(Math.round(originRelativeProb * stimFile.spawnWeightComparedToOrigin), 1)
-												})
 											}
 										}
 									}
 								}
 							}
-						}
 
-						for (const container in staticLoot) {
-							const originIndex = staticLoot[container].itemDistribution.findIndex(entry => entry.tpl === originalStim);
-							if (originIndex !== -1) {
-								const originProbability = staticLoot[container].itemDistribution[originIndex].relativeProbability
-								const spawnRelativeProbability = Math.max(Math.round(originProbability * stimFile.spawnWeightComparedToOrigin), 1);
-								//logger.warning(`[${modShortName}] didn't find existing entry for ${newStimId} in container ${container} items distribution`);
-								staticLoot[container].itemDistribution.push({
-									tpl: newStimId,
-									relativeProbability: spawnRelativeProbability
-								})
-								//const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
-								//logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
-							}
-						}
-					}
-
-					// add to traders
-					if (stimFile.hasOwnProperty("trader")) {
-						const trader = traders[stimFile.trader.traderId];
-						trader.assort.items.push({
-							"_id": newStimId,
-							"_tpl": newStimId,
-							"parentId": "hideout",
-							"slotId": "hideout",
-							"upd":
-							{
-								"UnlimitedCount": false,
-								"StackObjectsCount": stimFile.trader.amountForSale
-							}
-						});
-						trader.assort.barter_scheme[newStimId] = [
-							[
-								{
-									"count": stimFile.trader.price,
-									"_tpl": "5449016a4bdc2d6f028b456f" // roubles
+							for (const container in staticLoot) {
+								const originIndex = staticLoot[container].itemDistribution.findIndex(entry => entry.tpl === originalConsumable);
+								if (originIndex !== -1) {
+									const originProbability = staticLoot[container].itemDistribution[originIndex].relativeProbability
+									const spawnRelativeProbability = Math.max(Math.round(originProbability * consumableFile.spawnWeightComparedToOrigin), 1);
+									//logger.warning(`[${modShortName}] didn't find existing entry for ${newConsumableId} in container ${container} items distribution`);
+									staticLoot[container].itemDistribution.push({
+										tpl: newConsumableId,
+										relativeProbability: spawnRelativeProbability
+									})
+									//const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
+									//logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
 								}
-							]
-						];
-						trader.assort.loyal_level_items[newStimId] = stimFile.trader.loyaltyReq;
-					}
+							}
+						}
 
-					// add craft
-					if (stimFile.hasOwnProperty("craft")) {
-						production.push(stimFile.craft);
+						// add to traders
+						if (consumableFile.hasOwnProperty("trader")) {
+							const trader = traders[consumableFile.trader.traderId];
+							trader.assort.items.push({
+								"_id": newConsumableId,
+								"_tpl": newConsumableId,
+								"parentId": "hideout",
+								"slotId": "hideout",
+								"upd":
+								{
+									"UnlimitedCount": false,
+									"StackObjectsCount": consumableFile.trader.amountForSale
+								}
+							});
+							trader.assort.barter_scheme[newConsumableId] = [
+								[
+									{
+										"count": consumableFile.trader.price,
+										"_tpl": "5449016a4bdc2d6f028b456f" // roubles
+									}
+								]
+							];
+							trader.assort.loyal_level_items[newConsumableId] = consumableFile.trader.loyaltyReq;
+						}
+
+						// add craft
+						if (consumableFile.hasOwnProperty("craft")) {
+							production.push(consumableFile.craft);
+						}
+					} catch (error) {
+						logger.error(`Failed to parse JSON: ${error}\nSelected item will not be loaded`, error);
 					}
-                }
-            });
-        }
-        traverse(`${modPath}/stims/`);
+				}
+			});
+		}
+		traverse(`${modPath}/items/`);
 		logger.success(`[${this.modShortName}] ${this.mod} finished loading`);
 	}
 }
 
-module.exports = { mod: new StimsGalore() }
+module.exports = { mod: new ConsumablesGalore() }
