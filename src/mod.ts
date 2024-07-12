@@ -1,12 +1,12 @@
 import { DependencyContainer } from "tsyringe";
-import { Ilogger } from "@spt-aki/models/spt/utils/Ilogger";
-import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-import { ILocationData } from "@spt-aki/models/spt/server/ILocations";
+import { Ilogger } from "@spt/models/spt/utils/Ilogger";
+import { IPostDBLoadMod } from "@spt/models/external/IPostDBLoadMod";
+import { DatabaseServer } from "@spt/servers/DatabaseServer";
+import { ILocationData } from "@spt/models/spt/server/ILocations";
 
 //item creation
-import { CustomItemService } from "@spt-aki/services/mod/CustomItemService";
-import { NewItemFromCloneDetails } from "@spt-aki/models/spt/mod/NewItemDetails";
+import { CustomItemService } from "@spt/services/mod/CustomItemService";
+import { NewItemFromCloneDetails } from "@spt/models/spt/mod/NewItemDetails";
 
 import * as path from "path";
 const fs = require('fs');
@@ -46,7 +46,6 @@ class ConsumablesGalore implements IPostDBLoadMod
 		const quests = tables.templates.quests;
 		const traders = tables.traders;
 		const production = tables.hideout.production;
-		const staticLoot = tables.loot.staticLoot;
 
 		
 
@@ -125,7 +124,6 @@ class ConsumablesGalore implements IPostDBLoadMod
 						
 						// Add spawn points
 						if (consumableFile.addSpawnsInSamePlacesAsOrigin) {
-
 							// Big thanks to RainbowPC and his Lots Of Loot (https://hub.sp-tarkov.com/files/file/697-lots-of-loot/) as this function to inject loot into map loot spawns is direct steal from there 
 							const lootComposedKey = newConsumableId +"_composedkey"
 							const maps = ["bigmap", "woods", "factory4_day", "factory4_night", "interchange", "laboratory", "lighthouse", "rezervbase", "shoreline", "tarkovstreets", "sandbox"];
@@ -156,22 +154,22 @@ class ConsumablesGalore implements IPostDBLoadMod
 												}
 											}
 										}
+										const staticLoot = mapdata.staticLoot;
+										for (const container in staticLoot) {
+											const originIndex = staticLoot[container].itemDistribution.findIndex(entry => entry.tpl === originalConsumable);
+											if (originIndex !== -1) {
+												const originProbability = staticLoot[container].itemDistribution[originIndex].relativeProbability
+												const spawnRelativeProbability = Math.max(Math.round(originProbability * consumableFile.spawnWeightComparedToOrigin), 1);
+												//logger.warning(`[${modShortName}] didn't find existing entry for ${newConsumableId} in container ${container} items distribution`);
+												staticLoot[container].itemDistribution.push({
+													tpl: newConsumableId,
+													relativeProbability: spawnRelativeProbability
+												})
+												//const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
+												//logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
+											}
+										}
 									}
-								}
-							}
-
-							for (const container in staticLoot) {
-								const originIndex = staticLoot[container].itemDistribution.findIndex(entry => entry.tpl === originalConsumable);
-								if (originIndex !== -1) {
-									const originProbability = staticLoot[container].itemDistribution[originIndex].relativeProbability
-									const spawnRelativeProbability = Math.max(Math.round(originProbability * consumableFile.spawnWeightComparedToOrigin), 1);
-									//logger.warning(`[${modShortName}] didn't find existing entry for ${newConsumableId} in container ${container} items distribution`);
-									staticLoot[container].itemDistribution.push({
-										tpl: newConsumableId,
-										relativeProbability: spawnRelativeProbability
-									})
-									//const lastElement = staticLoot[container].itemDistribution[staticLoot[container].itemDistribution.length - 1];
-									//logger.warning(`[${modShortName}] pushed element: ${JSON.stringify(lastElement)}`);
 								}
 							}
 						}
