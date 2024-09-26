@@ -88,13 +88,17 @@ class ConsumablesGalore implements IPostDBLoadMod
 
 						const consumableClone: NewItemFromCloneDetails = {
 							itemTplToClone: originalConsumable,
-							overrideProperties: {
-								BackgroundColor: consumableFile.BackgroundColor ? consumableFile.BackgroundColor : itemDB[originalConsumable]._props.BackgroundColor,
-								StimulatorBuffs: newConsumableId,
-								effects_health: consumableFile.effects_health ? consumableFile.effects_health : itemDB[originalConsumable]._props.effects_health,
-								effects_damage: consumableFile.effects_damage ? consumableFile.effects_damage : itemDB[originalConsumable]._props.effects_damage,
-								MaxResource: consumableFile.MaxResource ? consumableFile.MaxResource : itemDB[originalConsumable]._props.MaxResource
-							},
+							 overrideProperties: {
+                                BackgroundColor: consumableFile.BackgroundColor ? consumableFile.BackgroundColor : itemDB[originalConsumable]._props.BackgroundColor,
+                                StimulatorBuffs: newConsumableId,
+                                effects_health: consumableFile.effects_health ? consumableFile.effects_health : itemDB[originalConsumable]._props.effects_health,
+                                effects_damage: consumableFile.effects_damage ? consumableFile.effects_damage : itemDB[originalConsumable]._props.effects_damage,
+                                MaxHpResource: consumableFile.MaxResource ? consumableFile.MaxResource : itemDB[originalConsumable]._props.MaxHpResource,
+                                medUseTime: consumableFile.medUseTime ? consumableFile.medUseTime : itemDB[originalConsumable]._props.medUseTime,
+                                Prefab: consumableFile.Prefab ? consumableFile.Prefab : itemDB[originalConsumable]._props.Prefab,
+                                UsePrefab: consumableFile.UsePrefab ? consumableFile.UsePrefab : itemDB[originalConsumable]._props.UsePrefab,
+                                ItemSound: consumableFile.ItemSound ? consumableFile.ItemSound : itemDB[originalConsumable]._props.ItemSound
+                            },
 							newId: newConsumableId,
 							parentId: itemDB[originalConsumable]._parent,
 							handbookParentId: handbookParentId,
